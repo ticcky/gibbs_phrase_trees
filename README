@@ -1,0 +1,16 @@
+Common subtree extraction from analytical parses of sentences using Gibbs sampling.
+
+How to use?
+-----------
+  # python gibbs_trees_flat.py --treebank sample_input.txt --out sample_output.txt
+
+TSV format
+----------
+<word id>TAB<word lemma>TAB<word parent id>
+...
+
+ - word parent id is id of the parent word or 0 if word's parent is root
+
+Recommendation
+--------------
+Use Cython or PyPy to process larger treebanks.

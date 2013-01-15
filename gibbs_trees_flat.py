@@ -9,7 +9,7 @@ __license__ = "Apache 2.0"
 
 import sys
 from collections import defaultdict
-import pdbonerror
+#import pdbonerror
 import random
 
 
@@ -554,16 +554,22 @@ class TreeDecoding(object):
                 print >> f_out, ""
 
 
-def main(fname):
-    # parameters
-    n_trees = 1000
-    alfa = 1.0
-    iters = 1000
-    exp_id = int(sys.argv[2])
-    params = "e%d_n%s_alfa%.6f_i%d" % (exp_id, str(n_trees), alfa, iters,)
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description='Use Gibbs Sampling to find common subtrees in a treebank corpus.')
+    parser.add_argument('--treebank', help='treebank in TSV format (see help for more information)', required=True)
+    parser.add_argument('--out', help='output file name', required=True)
+    parser.add_argument('--alpha', help='alpha for the treebank model', default=1.0)
+    parser.add_argument('--iters', help='number of iterations', default=1000)
+    parser.add_argument('--ntrees', help='number of trees to load from the treebank', default=None)
+    args = parser.parse_args()
+
+    n_trees = int(args.ntrees)  # limit on number of loaded trees, None - all trees in treebank
+    alfa = float(args.alpha)
+    iters = int(args.iters)
 
     tb = TreeBank()
-    tb.load(fname, n_trees)
+    tb.load(args.treebank, n_trees)
 
     gt = GibbsTrees(tb)
     gt.randomize_groups()
@@ -575,7 +581,7 @@ def main(fname):
     gs.do(iters, collect_start=iters/3)
     #gt.save_to_file("trees_out_dev_%s.txt" % params)
 
-    td.save_to_file("phrases_%s.txt" % params)
+    td.save_to_file(args.out)
 
     #import ipdb; ipdb.set_trace()
 
@@ -583,4 +589,4 @@ def main(fname):
     #import ipdb; ipdb.set_trace()
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main()

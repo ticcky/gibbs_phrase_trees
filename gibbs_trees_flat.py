@@ -94,6 +94,7 @@ class TreeBank(object):
 
             for ln in f_in:
                 ln = ln.strip()
+                ln = ln.lower()
 
                 # if it is the separating line, store the current tree and
                 # start a new one
@@ -366,7 +367,7 @@ class GibbsSampling(object):
 
     alfa = None
 
-    def __init__(self, gibbs_trees, tree_decoding, alfa):
+    def __init__(self, gibbs_trees, tree_decoding, alfa, genprob):
         # tree partitioning toolkit on which to operate
         self.gibbs_trees = gibbs_trees
 
@@ -375,6 +376,9 @@ class GibbsSampling(object):
 
         # alfa for the boxed formula
         self.alfa = alfa
+
+        self.p_tree_gen = genprob
+        self.p_tree_stop = 1 - genprob
 
     def p0tree(self, tree, subtree):
         """Compute prior for the given subtree."""
@@ -562,11 +566,16 @@ def main():
     parser.add_argument('--alpha', help='alpha for the treebank model', default=1.0)
     parser.add_argument('--iters', help='number of iterations', default=1000)
     parser.add_argument('--ntrees', help='number of trees to load from the treebank', default=None)
+    parser.add_argument('--genprob', help='probability of generating next child', default=0.5)
     args = parser.parse_args()
 
-    n_trees = int(args.ntrees)  # limit on number of loaded trees, None - all trees in treebank
+    if args.ntrees is not None:
+        n_trees = int(args.ntrees)  # limit on number of loaded trees, None - all trees in treebank
+    else:
+        n_trees = None
     alfa = float(args.alpha)
     iters = int(args.iters)
+    genprob = float(args.genprob)
 
     tb = TreeBank()
     tb.load(args.treebank, n_trees)
@@ -577,8 +586,8 @@ def main():
 
     td = TreeDecoding(gt)
 
-    gs = GibbsSampling(gt, td, alfa=alfa)
-    gs.do(iters, collect_start=iters/3)
+    gs = GibbsSampling(gt, td, alfa=alfa, genprob=genprob)
+    gs.do(iters, collect_start=iters - 50)
     #gt.save_to_file("trees_out_dev_%s.txt" % params)
 
     td.save_to_file(args.out)
